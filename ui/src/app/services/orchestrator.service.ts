@@ -1,6 +1,4 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -10,14 +8,17 @@ export class OrchestratorService {
   private readonly POLL_INTERVAL = 500;
   private readonly MAX_POLL_TIME = 120000; // 2 minutes
 
-  constructor(private http: HttpClient) {}
-
   async runWorkflow(userInput: any): Promise<any> {
     try {
       // Send workflow request
-      const response = await firstValueFrom(
-        this.http.post<any>(`${this.ORCHESTRATOR_URL}/run`, userInput)
-      );
+      const response = await fetch(`${this.ORCHESTRATOR_URL}/run`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userInput),
+      }).then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      });
 
       if (response.status === 'completed') {
         // Map response to component's expected structure
@@ -33,9 +34,7 @@ export class OrchestratorService {
       // Poll for results if not immediately complete
       return await this.pollWorkflowStatus(response.workflowId);
     } catch (error: any) {
-      throw new Error(
-        error.error?.error || error.message || 'Failed to run workflow'
-      );
+      throw new Error(error.message || 'Failed to run workflow');
     }
   }
 
@@ -73,11 +72,12 @@ export class OrchestratorService {
         }
 
         try {
-          const status = await firstValueFrom(
-            this.http.get<any>(
-              `${this.ORCHESTRATOR_URL}/workflow/${workflowId}`
-            )
-          );
+          const status = await fetch(
+            `${this.ORCHESTRATOR_URL}/workflow/${workflowId}`
+          ).then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+          });
 
           if (
             status.status === 'completed' ||
@@ -89,11 +89,12 @@ export class OrchestratorService {
               reject(new Error('Workflow failed'));
             } else {
               // Fetch full results
-              const results = await firstValueFrom(
-                this.http.get<any>(
-                  `${this.ORCHESTRATOR_URL}/workflow/${workflowId}/results`
-                )
-              );
+              const results = await fetch(
+                `${this.ORCHESTRATOR_URL}/workflow/${workflowId}/results`
+              ).then(res => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
+              });
               resolve(results);
             }
           }
