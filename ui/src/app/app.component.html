@@ -1,0 +1,177 @@
+<div class="container">
+  <header class="header">
+    <h1>{{ title }}</h1>
+    <p class="subtitle">
+      Multi-agent AI retirement planning powered by Node.js and Angular
+    </p>
+  </header>
+
+  <div class="content">
+    <!-- Error Message -->
+    <div *ngIf="error" class="error-box">
+      <strong>Error:</strong> {{ error }}
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-box">
+      <div class="spinner"></div>
+      <p>Agents collaborating to generate strategies...</p>
+      <small>This typically takes 15-20 seconds</small>
+    </div>
+
+    <!-- Input Form -->
+    <div *ngIf="!results && !loading" class="form-section">
+      <h2>Your Financial Profile</h2>
+      <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Current Age</label>
+            <input
+              type="number"
+              formControlName="age"
+              placeholder="35"
+              min="18"
+              max="100"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Annual Income ($)</label>
+            <input
+              type="number"
+              formControlName="annualIncome"
+              placeholder="200000"
+              min="0"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Total Savings ($)</label>
+            <input
+              type="number"
+              formControlName="totalSavings"
+              placeholder="400000"
+              min="0"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Target Retirement Age</label>
+            <input
+              type="number"
+              formControlName="retirementAge"
+              placeholder="55"
+              min="40"
+              max="80"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Monthly Expenses ($)</label>
+            <input
+              type="number"
+              formControlName="monthlyExpenses"
+              placeholder="8000"
+              min="0"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Risk Tolerance</label>
+            <select formControlName="riskTolerance">
+              <option value="low">Low — Capital Preservation</option>
+              <option value="moderate">Moderate — Balanced Growth</option>
+              <option value="high">High — Maximum Growth</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" [disabled]="userForm.invalid">
+            Generate Strategies
+          </button>
+          <button type="button" class="btn-secondary" (click)="reset()">Reset</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Results Section -->
+    <div *ngIf="results" class="results-section">
+      <div class="results-header">
+        <h2>Retirement Planning Strategies</h2>
+        <button class="btn-secondary" (click)="reset()">← Start Over</button>
+      </div>
+
+      <!-- A2UI-Compatible Dynamic Surface -->
+      <div *ngIf="uiSurface" class="card a2ui-surface">
+        <h3>Agent-Driven Results</h3>
+        <app-dynamic-surface [surface]="uiSurface"></app-dynamic-surface>
+      </div>
+
+      <!-- Financial Profile Summary -->
+      <div *ngIf="results.financialProfile" class="card">
+        <h3>Financial Profile</h3>
+        <div class="profile-grid">
+          <div class="stat">
+            <label>Current Age</label>
+            <span>{{ results.financialProfile.age }} years</span>
+          </div>
+          <div class="stat">
+            <label>Annual Income</label>
+            <span>${{ results.financialProfile.annualIncome | number }}</span>
+          </div>
+          <div class="stat">
+            <label>Total Savings</label>
+            <span>${{ results.financialProfile.totalSavings | number }}</span>
+          </div>
+          <div class="stat">
+            <label>Net Worth</label>
+            <span>${{ results.financialProfile.netWorth | number }}</span>
+          </div>
+          <div class="stat">
+            <label>Savings Rate</label>
+            <span>{{ (results.financialProfile.savingsRate * 100) | number: '1.1' }}%</span>
+          </div>
+          <div class="stat">
+            <label>Years to Retirement</label>
+            <span>{{ results.financialProfile.yearsToRetirement }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Strategy Rankings -->
+      <div *ngIf="results.strategyRankings" class="card">
+        <h3>Strategy Rankings</h3>
+        <div class="strategies-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Strategy</th>
+                <th>Score</th>
+                <th>Success %</th>
+                <th>Median End Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let ranking of results.strategyRankings"
+                  [class.top-strategy]="ranking.rank === 1">
+                <td class="rank-badge" [ngClass]="ranking.rank === 1 ? 'first' : ''">
+                  {{ ranking.rank }}
+                </td>
+                <td>{{ ranking.strategyLabel }}</td>
+                <td>{{ ranking.compositeScore | number: '1.1' }}</td>
+                <td>{{ ranking.successProbability | number: '1.0' }}%</td>
+                <td>${{ ranking.medianEndBalance | number }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="workflowId">
+        <small>Workflow ID: {{ results.workflowId }}</small>
+      </div>
+    </div>
+  </div>
+</div>

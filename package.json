@@ -1,0 +1,10 @@
+{
+  "name": "agentic-finance-nodejs",
+  "version": "1.0.0",
+  "description": "Multi-agent financial planning platform - Node.js implementation",
+  "workspaces": [
+    "agents/*",
+    "orchestrator",
+    "shared-memory"
+  ]
+}

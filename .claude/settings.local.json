@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install)",
+      "Bash(docker run -d -p 6379:6379 --name a2a-redis redis:7-alpine)",
+      "Bash(docker start a2a-redis)",
+      "WebSearch",
+      "Bash(/Users/rohangirase/workspace/A2A-nodejs/.gitignore:*)",
+      "Bash(git init)",
+      "Bash(git config user.name \"Rohan Girase\")",
+      "Bash(git config user.email \"rohangirase@example.com\")",
+      "Bash(git add -A)"
+    ]
+  }
+}

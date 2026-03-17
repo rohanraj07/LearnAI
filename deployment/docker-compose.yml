@@ -1,0 +1,257 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - agent-network
+
+  orchestrator:
+    build:
+      context: ../orchestrator
+      dockerfile: Dockerfile
+    ports:
+      - '8000:8000'
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - NODE_ENV=production
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - agent-network
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:8000/health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  financial-profile-agent:
+    build:
+      context: ../agents/financial-profile-agent
+      dockerfile: Dockerfile
+    ports:
+      - '8001:8001'
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - NODE_ENV=production
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - agent-network
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:8001/health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  market-simulation-agent:
+    build:
+      context: ../agents/market-simulation-agent
+      dockerfile: Dockerfile
+    ports:
+      - '8002:8002'
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - NODE_ENV=production
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - agent-network
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:8002/health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  portfolio-optimization-agent:
+    build:
+      context: ../agents/portfolio-optimization-agent
+      dockerfile: Dockerfile
+    ports:
+      - '8003:8003'
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - NODE_ENV=production
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - agent-network
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:8003/health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  tax-strategy-agent:
+    build:
+      context: ../agents/tax-strategy-agent
+      dockerfile: Dockerfile
+    ports:
+      - '8004:8004'
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - NODE_ENV=production
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - agent-network
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:8004/health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  risk-evaluation-agent:
+    build:
+      context: ../agents/risk-evaluation-agent
+      dockerfile: Dockerfile
+    ports:
+      - '8005:8005'
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - NODE_ENV=production
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - agent-network
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:8005/health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  reviewer-agent:
+    build:
+      context: ../agents/reviewer-agent
+      dockerfile: Dockerfile
+    ports:
+      - '8006:8006'
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - NODE_ENV=production
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - agent-network
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:8006/health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  evaluator-agent:
+    build:
+      context: ../agents/evaluator-agent
+      dockerfile: Dockerfile
+    ports:
+      - '8007:8007'
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - NODE_ENV=production
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - agent-network
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:8007/health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  agent-bootstrap:
+    image: curlimages/curl:8.6.0
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      financial-profile-agent:
+        condition: service_healthy
+      market-simulation-agent:
+        condition: service_healthy
+      portfolio-optimization-agent:
+        condition: service_healthy
+      tax-strategy-agent:
+        condition: service_healthy
+      risk-evaluation-agent:
+        condition: service_healthy
+      reviewer-agent:
+        condition: service_healthy
+      evaluator-agent:
+        condition: service_healthy
+    networks:
+      - agent-network
+    command: |
+      sh -c '
+      sleep 3
+      curl -X POST http://orchestrator:8000/register \
+        -H "Content-Type: application/json" \
+        -d "{\"agentId\":\"financial-profile-agent\",\"baseUrl\":\"http://financial-profile-agent:8001\",\"capabilities\":[\"PROFILE_USER\"],\"version\":\"1.0.0\"}"
+      curl -X POST http://orchestrator:8000/register \
+        -H "Content-Type: application/json" \
+        -d "{\"agentId\":\"market-simulation-agent\",\"baseUrl\":\"http://market-simulation-agent:8002\",\"capabilities\":[\"RUN_MONTE_CARLO\"],\"version\":\"1.0.0\"}"
+      curl -X POST http://orchestrator:8000/register \
+        -H "Content-Type: application/json" \
+        -d "{\"agentId\":\"portfolio-optimization-agent\",\"baseUrl\":\"http://portfolio-optimization-agent:8003\",\"capabilities\":[\"OPTIMIZE_PORTFOLIO\"],\"version\":\"1.0.0\"}"
+      curl -X POST http://orchestrator:8000/register \
+        -H "Content-Type: application/json" \
+        -d "{\"agentId\":\"tax-strategy-agent\",\"baseUrl\":\"http://tax-strategy-agent:8004\",\"capabilities\":[\"COMPUTE_TAX_STRATEGY\"],\"version\":\"1.0.0\"}"
+      curl -X POST http://orchestrator:8000/register \
+        -H "Content-Type: application/json" \
+        -d "{\"agentId\":\"risk-evaluation-agent\",\"baseUrl\":\"http://risk-evaluation-agent:8005\",\"capabilities\":[\"EVALUATE_RISK\"],\"version\":\"1.0.0\"}"
+      curl -X POST http://orchestrator:8000/register \
+        -H "Content-Type: application/json" \
+        -d "{\"agentId\":\"reviewer-agent\",\"baseUrl\":\"http://reviewer-agent:8006\",\"capabilities\":[\"REVIEW_STRATEGY\"],\"version\":\"1.0.0\"}"
+      curl -X POST http://orchestrator:8000/register \
+        -H "Content-Type: application/json" \
+        -d "{\"agentId\":\"evaluator-agent\",\"baseUrl\":\"http://evaluator-agent:8007\",\"capabilities\":[\"EVALUATE_AND_RANK\"],\"version\":\"1.0.0\"}"
+      echo "All agents registered"
+      '
+    restart: 'no'
+
+  ui:
+    build:
+      context: ../ui
+      dockerfile: Dockerfile
+      args:
+        ORCHESTRATOR_URL: http://orchestrator:8000
+    ports:
+      - '4200:4200'
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+    networks:
+      - agent-network
+    environment:
+      - ORCHESTRATOR_URL=http://orchestrator:8000
+
+networks:
+  agent-network:
+    driver: bridge

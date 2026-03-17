@@ -1,0 +1,46 @@
+<div *ngIf="surface" class="dynamic-surface">
+  <!-- Table Type Surface -->
+  <div *ngIf="isTableType" class="surface-table">
+    <h4>{{ surface.title }}</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th *ngFor="let col of surface.columns">{{ col.label }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of surface.rows" [class.highlight-row]="row.rank === 1">
+            <td *ngFor="let col of surface.columns">
+              {{ getNestedValue(row, col.key) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section Type Surface -->
+  <div *ngIf="isSectionType" class="surface-section">
+    <h4>{{ surface.title }}</h4>
+    <div class="section-content">
+      <!-- Nested Metric Grid -->
+      <div *ngFor="let child of surface.children" [ngSwitch]="child.type">
+        <div *ngSwitchCase="'metric-grid'" class="metric-grid">
+          <div *ngFor="let metric of child.metrics" class="metric-item">
+            <label>{{ metric.label }}</label>
+            <span class="metric-value">{{ metric.value }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Direct Metric Grid Type -->
+  <div *ngIf="isMetricGridType" class="metric-grid">
+    <div *ngFor="let metric of surface.metrics" class="metric-item">
+      <label>{{ metric.label }}</label>
+      <span class="metric-value">{{ metric.value }}</span>
+    </div>
+  </div>
+</div>

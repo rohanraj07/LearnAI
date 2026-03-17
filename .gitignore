@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+build/
+*.bundle.js
+.angular/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.classpath
+
+# Logs
+logs/
+*.log
+
+# Redis
+dump.rdb
+
+# Docker
+docker-compose.override.yml
+.docker/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+.runtimeconfig.json
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary
+tmp/
+temp/
+
+# OS
+Thumbs.db
+.AppleDouble
+.LSOverride
