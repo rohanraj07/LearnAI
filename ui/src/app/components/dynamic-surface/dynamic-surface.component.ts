@@ -4,6 +4,7 @@ import { Component, Input } from '@angular/core';
   selector: 'app-dynamic-surface',
   templateUrl: './dynamic-surface.component.html',
   styleUrls: ['./dynamic-surface.component.scss'],
+  standalone: false,
 })
 export class DynamicSurfaceComponent {
   @Input() surface: any;
